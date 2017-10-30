@@ -38,23 +38,23 @@ if __name__ == '__main__':
 
     import matplotlib.pyplot as plt
 
-    def to_mat(u, shape=(4, 4)):
+    def to_mat(u, shape):
         dst = np.zeros(shape)
         for k, v in u.iteritems():
-            dst[k / 4, k % 4] = v
+            dst[k / shape[1], k % shape[1]] = v
         return dst
 
-    def add_arrow(pi, shape=(4, 4)):
+    def add_arrow(pi, shape):
         for k, v in pi.iteritems():
             if v == gridworld.UP:
-                plt.arrow(k / 4, k % 4, -0.45, 0, head_width=0.05)
+                plt.arrow(k / shape[1], k % shape[1], -0.45, 0, head_width=0.05)
             elif v == gridworld.RIGHT:
-                plt.arrow(k / 4, k % 4, 0, 0.45, head_width=0.05)
+                plt.arrow(k / shape[1], k % shape[1], 0, 0.45, head_width=0.05)
             elif v == gridworld.DOWN:
-                plt.arrow(k / 4, k % 4, 0.45, 0, head_width=0.05)
+                plt.arrow(k / shape[1], k % shape[1], 0.45, 0, head_width=0.05)
             elif v == gridworld.LEFT:
-                plt.arrow(k / 4, k % 4, 0, -0.45, head_width=0.05)
+                plt.arrow(k / shape[1], k % shape[1], 0, -0.45, head_width=0.05)
 
-    plt.matshow(to_mat(U))
-    add_arrow(pi)
+    plt.matshow(to_mat(U, grid.shape))
+    add_arrow(pi, grid.shape)
     plt.show()

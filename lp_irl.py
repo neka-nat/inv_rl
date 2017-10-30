@@ -47,11 +47,11 @@ if __name__ == '__main__':
     print res
 
     import matplotlib.pyplot as plt
-    def to_mat(res, shape=(4, 4)):
+    def to_mat(res, shape):
         dst = np.zeros(shape)
         for i, v in enumerate(res):
-            dst[i / 4, i % 4] = v
+            dst[i / shape[1], i % shape[1]] = v
         return dst
 
-    plt.matshow(to_mat(res))
+    plt.matshow(to_mat(res, grid.shape))
     plt.show()
