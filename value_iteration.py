@@ -1,38 +1,45 @@
 import numpy as np
 
-def value_iteration(mdp_env, gamma=0.9, epsilon=0.001):
+def trans_mat(env):
+    return (np.array([[np.eye(1, env.nS, env.P[s][a][0][1])[0] for a in range(env.nA)] for s in range(env.nS)]),
+            np.array([env.P[s].values()[0][0][2] for s in range(env.nS)]))
+
+def value_iteration(trans_probs, reward, gamma=0.9, epsilon=0.001):
     """Solving an MDP by value iteration."""
-    U1 = {s: 0 for s in range(mdp_env.nS)}
+    n_states, n_actions, _ = trans_probs.shape
+    U1 = {s: 0 for s in range(n_states)}
     while True:
         U = U1.copy()
         delta = 0
-        for s in range(mdp_env.nS):
-            Rs = mdp_env.P[s].values()[0][0][2]
-            U1[s] = Rs + gamma * max([sum([p * U[s1] for p, s1, _, _ in mdp_env.P[s][a]])
-                                      for a in mdp_env.P[s].keys()])
+        for s in range(n_states):
+            Rs = reward[s]
+            U1[s] = Rs + gamma * max([sum([p * U[s1] for s1, p in enumerate(trans_probs[s, a, :])])
+                                      for a in range(n_actions)])
             delta = max(delta, abs(U1[s] - U[s]))
         if delta < epsilon * (1 - gamma) / gamma:
             return U
 
-def expected_utility(a, s, U, mdp_env):
+def expected_utility(a, s, U, trans_probs):
     """The expected utility of doing a in state s, according to the MDP and U."""
-    return sum([p * U[s1] for p, s1, _, _ in mdp_env.P[s][a]])
+    return sum([p * U[s1] for s1, p in enumerate(trans_probs[s, a, :])])
 
-def best_policy(mdp_env, U):
+def best_policy(trans_probs, U):
     """
     Given an MDP and a utility function U, determine the best policy,
     as a mapping from state to action.
     """
+    n_states, n_actions, _ = trans_probs.shape
     pi = {}
-    for s in range(mdp_env.nS):
-        pi[s] = max(range(mdp_env.nA), key=lambda a: expected_utility(a, s, U, mdp_env))
+    for s in range(n_states):
+        pi[s] = max(range(n_actions), key=lambda a: expected_utility(a, s, U, trans_probs))
     return pi
 
 if __name__ == '__main__':
     from envs import gridworld
     grid = gridworld.GridworldEnv()
-    U = value_iteration(grid)
-    pi = best_policy(grid, U)
+    trans_probs, reward = trans_mat(grid)
+    U = value_iteration(trans_probs, reward)
+    pi = best_policy(trans_probs, U)
     print(U)
     print(pi)
 

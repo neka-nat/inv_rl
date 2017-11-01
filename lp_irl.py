@@ -28,22 +28,19 @@ def lp_irl(trans_probs, policy, gamma=0.2, l1=1.5, Rmax=5.0):
     b = np.vstack([np.zeros((n_states * (n_actions-1) * 2 + 2 * n_states, 1)),
                    Rmax * np.ones((2 * n_states, 1))])
     results = linprog(c, A_ub, b)
-    r = np.asarray(results["x"][:n_states], dtype=np.double)
 
-    return r.reshape((n_states,))
+    return results["x"][:n_states]
 
 if __name__ == '__main__':
     from envs import gridworld
     from value_iteration import *
 
-    def trans_mat(env):
-        return np.array([[np.eye(1, env.nS, env.P[s][a][0][1])[0] for a in range(env.nA)] for s in range(env.nS)])
-    
     grid = gridworld.GridworldEnv()
-    U = value_iteration(grid)
-    pi = best_policy(grid, U)
+    trans_probs, reward = trans_mat(grid)
+    U = value_iteration(trans_probs, reward)
+    pi = best_policy(trans_probs, U)
 
-    res = lp_irl(trans_mat(grid), pi)
+    res = lp_irl(trans_probs, pi)
     print res
 
     import matplotlib.pyplot as plt
