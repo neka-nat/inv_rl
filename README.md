@@ -2,7 +2,8 @@
 
 ## Implemented Algorithms
 
-* lp_irl
+* LP IRL
+* Maximum Entropy IRL
 
 ## Requirements
 
