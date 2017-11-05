@@ -18,14 +18,14 @@ def max_ent_irl(feature_matrix, trans_probs, trajs,
     n_states, d_states = feature_matrix.shape
     _, n_actions, _ = trans_probs.shape
 
-    theta = np.random.uniform(size=(d_states,))
-    feature_exp = np.zeros([d_states])
+    feature_exp = np.zeros((d_states))
     for episode in trajs:
         for step in episode:
             feature_exp += feature_matrix[step[0], :]
     feature_exp = feature_exp / len(trajs)
 
-    for i in range(n_epoch):
+    theta = np.random.uniform(size=(d_states,))
+    for _ in range(n_epoch):
         r = feature_matrix.dot(theta)
         v = value_iteration(trans_probs, r, gamma)
         pi = best_policy(trans_probs, v)
