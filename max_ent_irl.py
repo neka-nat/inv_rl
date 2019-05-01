@@ -56,15 +56,20 @@ def generate_demons(env, policy, n_trajs=100, len_traj=5):
     return trajs
 
 if __name__ == '__main__':
-    from envs import gridworld
- 
-    grid = gridworld.GridworldEnv()
+    from envs import rbfgridworld
+
+    print("Creating environment")
+    grid = rbfgridworld.RbfGridworldEnv()
+    print("Generationg transition matrix")
     trans_probs, reward = trans_mat(grid)
+    print("Running value iteration")
     U = value_iteration(trans_probs, reward)
+    print("Generating expert policy")
     pi = best_policy(trans_probs, U)
+    print("Generating expert trajectories")
+    trajs = generate_demons(grid, pi, n_trajs=200, len_traj=10)
 
-    trajs = generate_demons(grid, pi)
-
+    print("Running Max-Ent IRL")
     res = max_ent_irl(feature_matrix(grid), trans_probs, trajs)
     print(res)
 
@@ -75,5 +80,6 @@ if __name__ == '__main__':
             dst[i // shape[1], i % shape[1]] = v
         return dst
 
-    plt.matshow(to_mat(res, grid.shape))
+    plt.matshow(to_mat(res, grid.shape), 1)
+    plt.matshow(grid.grid, 2,)
     plt.show()
