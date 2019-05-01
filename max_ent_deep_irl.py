@@ -60,13 +60,13 @@ if __name__ == '__main__':
     trajs = generate_demons(grid, pi)
 
     res = max_ent_deep_irl(feature_matrix(grid), trans_probs, trajs)
-    print res
+    print(res)
 
     import matplotlib.pyplot as plt
     def to_mat(res, shape):
         dst = np.zeros(shape)
         for i, v in enumerate(res):
-            dst[i / shape[1], i % shape[1]] = v
+            dst[i // shape[1], i % shape[1]] = v
         return dst
 
     plt.matshow(to_mat(res, grid.shape))

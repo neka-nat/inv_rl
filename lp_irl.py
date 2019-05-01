@@ -41,13 +41,13 @@ if __name__ == '__main__':
     pi = best_policy(trans_probs, U)
 
     res = lp_irl(trans_probs, pi)
-    print res
+    print(res)
 
     import matplotlib.pyplot as plt
     def to_mat(res, shape):
         dst = np.zeros(shape)
         for i, v in enumerate(res):
-            dst[i / shape[1], i % shape[1]] = v
+            dst[i // shape[1], i % shape[1]] = v
         return dst
 
     plt.matshow(to_mat(res, grid.shape))

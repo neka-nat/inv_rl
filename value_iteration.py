@@ -2,7 +2,7 @@ import numpy as np
 
 def trans_mat(env):
     return (np.array([[np.eye(1, env.nS, env.P[s][a][0][1])[0] for a in range(env.nA)] for s in range(env.nS)]),
-            np.array([env.P[s].values()[0][0][2] for s in range(env.nS)]))
+            np.array([env.P[s][0][0][2] for s in range(env.nS)]))
 
 def value_iteration(trans_probs, reward, gamma=0.9, epsilon=1e-3):
     """Solving an MDP by value iteration."""

@@ -1,0 +1,5 @@
+gym
+numpy
+scipy
+chainer
+matplotlib
