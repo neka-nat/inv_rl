@@ -38,8 +38,8 @@ class GridworldEnv(discrete.DiscreteEnv):
         nS = np.prod(shape) # number of states
         nA = 4              # number of actions
 
-        MAX_Y = shape[0]    # shape of the gridworld, x direction
-        MAX_X = shape[1]    # shape of the gridworld, y direction
+        self.MAX_Y = shape[0]    # shape of the gridworld, x direction
+        self.MAX_X = shape[1]    # shape of the gridworld, y direction
 
         P = {}              # dictionary of [states] [actions] = ([1.0, next_state, reward, is_done])
         grid = np.arange(nS).reshape(shape)
@@ -70,9 +70,9 @@ class GridworldEnv(discrete.DiscreteEnv):
                 P[s][LEFT] = [(1.0, s, reward, True)]
             # Not a terminal state
             else:           #One may want to include some kind of list of goal states to substitute the next four lines.
-                ns_up = s if y == 0 else s - MAX_X # move one full row to the left
-                ns_right = s if x == (MAX_X - 1) else s + 1
-                ns_down = s if y == (MAX_Y - 1) else s + MAX_X # move one full row to the right
+                ns_up = s if y == 0 else s - self.MAX_X # move one full row to the left
+                ns_right = s if x == (self.MAX_X - 1) else s + 1
+                ns_down = s if y == (self.MAX_Y - 1) else s + self.MAX_X # move one full row to the right
                 ns_left = s if x == 0 else s - 1
                 P[s][UP] = [(1.0, ns_up, reward, is_done(ns_up))]
                 P[s][RIGHT] = [(1.0, ns_right, reward, is_done(ns_right))]
@@ -82,8 +82,8 @@ class GridworldEnv(discrete.DiscreteEnv):
             it.iternext()
 
         # Initial state distribution is uniform
-        isd = np.ones(nS) / nS
-
+        isd = np.zeros(nS)
+        isd[nS//2] = 1
         # We expose the model of the environment for educational purposes
         # This should not be used in any model-free learning algorithm
         self.P = P

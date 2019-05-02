@@ -1,5 +1,6 @@
 import numpy as np
-import value_iteration 
+from value_iteration import *
+import itertools
 
 
 '''''' #From irl-me
@@ -15,8 +16,7 @@ def expected_svf(trans_probs, trajs, policy): #state value function
             mu[s, t] = sum([mu[pre_s, t - 1] * trans_probs[pre_s, policy[pre_s], s] for pre_s in range(n_states)])
     return np.sum(mu, 1)
 
- def max_ent_irl(feature_matrix, trans_probs, trajs,
-                gamma=0.9, n_epoch=20, alpha=0.5):
+def max_ent_irl(feature_matrix, trans_probs, trajs, gamma=0.9, n_epoch=20, alpha=0.5):
     n_states, d_states = feature_matrix.shape
     _, n_actions, _ = trans_probs.shape
 
@@ -56,74 +56,90 @@ def generate_demons(env, policy, n_trajs=100, len_traj=5):
                 break
         trajs.append(episode)
     return trajs
-''''''
 
-def generate_pedagogic(expert_trajs, env, len_traj=5):
-  
-  #Generate all possible trajectories
-    all_possible_action_combinations=combinations_with_replacement(('UP','DOWN','LEFT','RIGHT'),len_traj-1) 
+
+def generate_pedagogic(expert_trajs, env, len_traj=10):
+
+    #Generate all possible trajectories
     possible_trajs = []
-    for state in range(env.nS):
-      for combination in all_possible_action_combinations:
-        state0=state
+    #for state in range(env.nS):
+
+    all_possible_action_combinations = itertools.combinations_with_replacement((0, 1, 2, 3), len_traj)
+    for combination in all_possible_action_combinations:
+        state0 = env.nS//2
+        print(state0)
         traj=[]
         for action in combination:
-           traj.append((state0,action,env.P[state0][action][0][1],env.P[state0][action][0][2])) #this line may contain an error. The third element is next_state
-           state0 = env.P[state0][action][0][2] #Update the current state to the new one
+            # state, action, n_state, reward
+            traj.append((state0,action,env.P[state0][action][0][1],env.P[state0][action][0][2])) #this line may contain an error. The third element is next_state
+            state0 = env.P[state0][action][0][1] #Update the current state to the new one
         possible_trajs.append(traj)
-        
+
+    print(possible_trajs)
+
     #Expert sum of features
-    
-     expert_sum_of_features=[0,0]
-    
-     for traj in expert_trajs:
-        
+
+    expert_sum_of_features=np.array([0,0])
+
+    for traj in expert_trajs:
+
         for transition in traj:
-          expert_sum_of_features += [transition[0] % env.MAX_X, transition[0]-(transition[0] % env.MAX_X)] #setting features = coordinates
+            expert_sum_of_features += [transition[0] % env.MAX_X, transition[0]-(transition[0] % env.MAX_X)] #setting features = coordinates
         expert_sum_of_features += [traj[-1][2] % env.MAX_X, traj[-1][2]-(traj[-1][2] % env.MAX_X)]
-        
-      expert_sum_of_features /= len(expert_trajs)
-     
+
+    expert_sum_of_features = expert_sum_of_features / len(expert_trajs)
+
     #Select the best trajectories
-      maximum = 0
-      trajs_goodness={} #How good is the trajectory according to 
-      
-      for traj in possible_trajs:
-        
-        sum_of_features=[0,0]
+    maximum = 0
+    trajs_goodness={} #How good is the trajectory according to
+
+    #print(possible_trajs[45])
+
+    for i, traj in enumerate(possible_trajs):
+
+        sum_of_features = np.array([0.0,0.0])
         traj_reward=0
-        eta=1 # Eta in the formula from CIRL
-        
+        eta=0.1 # Eta in the formula from CIRL
+
         for transition in traj:
-          sum_of_features += [transition[0] % env.MAX_X, transition[0]-(transition[0] % env.MAX_X)] #setting features = coordinates
-          traj_reward += transition[1]
+            sum_of_features += (transition[0] % env.MAX_X, transition[0]-(transition[0] % env.MAX_X)) #setting features = coordinates
+            traj_reward += transition[3]
+
         sum_of_features += [traj[-1][2] % env.MAX_X, traj[-1][2]-(traj[-1][2] % env.MAX_X)]
-        
-        trajs_goodness[traj]=traj_reward - eta*np.linalg.norm(sum_of_features-expert_sum_of_features)
-       
-      best_score=max(traj_goodness.values())
-      
-      eps = 0.1 # in order to select all the trajectories that are near the maximum
-      
-      pedagogical_trajs=[]
-      for traj in possible_trajs:
-        if trajs_goodness[traj] > (1-eps)*best_score:
-           pedagogical_trajs.append(traj)
-            
-      return pedagogical_trajs
+
+        trajs_goodness[i] = traj_reward - eta * np.linalg.norm(sum_of_features - expert_sum_of_features)
+
+
+
+    best_score=max(trajs_goodness.values())
+    print("best_score ", best_score)
+    #print(trajs_goodness.values())
+
+    eps = 0.1 # in order to select all the trajectories that are near the maximum
+
+    pedagogical_trajs=[]
+    for i, traj in enumerate(possible_trajs):
+        if trajs_goodness[i] > best_score - eps:
+            pedagogical_trajs.append(traj)
+
+    print("="*20)
+    for trj in pedagogical_trajs:
+        print(trj)
+
+    return pedagogical_trajs
         
 
-  if __name__ == '__main__':
+if __name__ == '__main__':
     from envs import gridworld
- 
-    grid = gridworld.GridworldEnv()
+
+    grid = gridworld.GridworldEnv(shape=(5,5))
     trans_probs, reward = trans_mat(grid)
     U = value_iteration(trans_probs, reward)
     pi = best_policy(trans_probs, U)
 
     expert_trajs = generate_demons(grid, pi)
-    
-    pedagogic_trajs = generate_pedagogic(expert_trajs,env)
+
+    pedagogic_trajs = generate_pedagogic(expert_trajs, grid)
 
     res = max_ent_irl(feature_matrix(grid), trans_probs, pedagogic_trajs)
     print(res)
