@@ -42,8 +42,8 @@ class GridworldEnv(discrete.DiscreteEnv):
         self.MAX_X = shape[1]    # shape of the gridworld, y direction
 
         P = {}              # dictionary of [states] [actions] = ([1.0, next_state, reward, is_done])
-        grid = np.arange(nS).reshape(shape)
-        it = np.nditer(grid, flags=['multi_index']) # iteration over array 'grid'
+        self.grid = np.zeros(shape) - 1.0
+        it = np.nditer(self.grid, flags=['multi_index']) # iteration over array 'grid'
         
         '''
         Numeration of the matrix 4x4 is as follows:
@@ -56,6 +56,9 @@ class GridworldEnv(discrete.DiscreteEnv):
         while not it.finished:
             s = it.iterindex                    # states
             y, x = it.multi_index
+
+            if s == 0 or s == (nS - 1):
+                self.grid[y][x] = 0.0
 
             P[s] = {a : [] for a in range(nA)}  # dictionary with info of state, action and reward
 
@@ -96,8 +99,8 @@ class GridworldEnv(discrete.DiscreteEnv):
 
         outfile = StringIO() if mode == 'ansi' else sys.stdout
 
-        grid = np.arange(self.nS).reshape(self.shape)
-        it = np.nditer(grid, flags=['multi_index'])
+        self.grid = np.arange(self.nS).reshape(self.shape)
+        it = np.nditer(self.grid, flags=['multi_index'])
         while not it.finished:
             s = it.iterindex
             y, x = it.multi_index

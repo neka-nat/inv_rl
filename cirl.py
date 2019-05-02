@@ -66,8 +66,7 @@ def generate_pedagogic(expert_trajs, env, len_traj=10):
 
     all_possible_action_combinations = itertools.combinations_with_replacement((0, 1, 2, 3), len_traj)
     for combination in all_possible_action_combinations:
-        state0 = env.nS//2
-        print(state0)
+        state0 = env.reset()
         traj=[]
         for action in combination:
             # state, action, n_state, reward
@@ -75,7 +74,6 @@ def generate_pedagogic(expert_trajs, env, len_traj=10):
             state0 = env.P[state0][action][0][1] #Update the current state to the new one
         possible_trajs.append(traj)
 
-    print(possible_trajs)
 
     #Expert sum of features
 
@@ -118,8 +116,11 @@ def generate_pedagogic(expert_trajs, env, len_traj=10):
     eps = 0.1 # in order to select all the trajectories that are near the maximum
 
     pedagogical_trajs=[]
+
+    best_k = sorted(trajs_goodness, key=trajs_goodness.get, reverse=True)[:5]
+
     for i, traj in enumerate(possible_trajs):
-        if trajs_goodness[i] > best_score - eps:
+        if i in best_k:
             pedagogical_trajs.append(traj)
 
     print("="*20)
@@ -127,12 +128,18 @@ def generate_pedagogic(expert_trajs, env, len_traj=10):
         print(trj)
 
     return pedagogical_trajs
+
+
         
 
 if __name__ == '__main__':
-    from envs import gridworld
+    from envs import rbfgridworld
+    #grid = rbfgridworld.RbfGridworldEnv()
 
+
+    from envs import gridworld
     grid = gridworld.GridworldEnv(shape=(5,5))
+
     trans_probs, reward = trans_mat(grid)
     U = value_iteration(trans_probs, reward)
     pi = best_policy(trans_probs, U)
@@ -145,11 +152,24 @@ if __name__ == '__main__':
     print(res)
 
     import matplotlib.pyplot as plt
+    plt.matshow(grid.grid, 1)
+
     def to_mat(res, shape):
         dst = np.zeros(shape)
         for i, v in enumerate(res):
             dst[i // shape[1], i % shape[1]] = v
         return dst
 
-    plt.matshow(to_mat(res, grid.shape))
+    plt.matshow(to_mat(res, grid.shape),2)
+
+    xs = []
+    ys = []
+
+    for traj in pedagogic_trajs[:2]:
+        for step in traj:
+            y, x = np.unravel_index(step[0], grid.shape)
+            xs.append(x)
+            ys.append(y)
+        plt.scatter(xs, ys, marker='X', color='Black')
+
     plt.show()

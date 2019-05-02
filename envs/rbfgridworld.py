@@ -28,8 +28,8 @@ class RbfGridworldEnv(discrete.DiscreteEnv):
         nS = np.prod(self.shape)
         nA = 5
 
-        MAX_Y = self.shape[0]
-        MAX_X = self.shape[1]
+        self.MAX_Y = self.shape[0]
+        self.MAX_X = self.shape[1]
 
         P = {}
 
@@ -54,11 +54,11 @@ class RbfGridworldEnv(discrete.DiscreteEnv):
 
             P[s] = {a : [] for a in range(nA)}
 
-            reward = self.grid[x][y]
+            reward = self.grid[y][x]
 
             def is_done(s):
-                ax, ay = np.unravel_index(s, self.shape)
-                r = self.grid[ax][ay]
+                ay, ax = np.unravel_index(s, self.shape)
+                r = self.grid[ay][ax]
                 if r == -1 or r == 1:
                     return True
                 return False
@@ -70,22 +70,24 @@ class RbfGridworldEnv(discrete.DiscreteEnv):
                 P[s][LEFT] = [(1.0, s, reward, True)]
                 P[s][NULL] = [(1.0, s, reward, True)]
             # Not a terminal state
-            else:
-                ns_up = s if y == 0 else s - MAX_X
-                ns_right = s if x == (MAX_X - 1) else s + 1
-                ns_down = s if y == (MAX_Y - 1) else s + MAX_X
-                ns_left = s if x == 0 else s - 1
-                P[s][UP] = [(1.0, ns_up, reward, is_done(ns_up))]
-                P[s][RIGHT] = [(1.0, ns_right, reward, is_done(ns_right))]
-                P[s][DOWN] = [(1.0, ns_down, reward, is_done(ns_down))]
-                P[s][LEFT] = [(1.0, ns_left, reward, is_done(ns_left))]
-                P[s][NULL] = [(1.0, s, reward, is_done(s))]
+            #else:
+
+            ns_up = s if y == 0 else s - self.MAX_X
+            ns_right = s if x == (self.MAX_X - 1) else s + 1
+            ns_down = s if y == (self.MAX_Y - 1) else s + self.MAX_X
+            ns_left = s if x == 0 else s - 1
+
+            P[s][UP] = [(1.0, ns_up, reward, False)]
+            P[s][RIGHT] = [(1.0, ns_right, reward, False)]
+            P[s][DOWN] = [(1.0, ns_down, reward, False)]
+            P[s][LEFT] = [(1.0, ns_left, reward, False)]
+            P[s][NULL] = [(1.0, s, reward, False)]
 
             it.iternext()
 
         # Initial state distribution is uniform
         isd = np.zeros(nS)
-        isd[nS//2 - 7] = 1
+        isd[nS//2 - 6] = 1
 
         # We expose the model of the environment for educational purposes
         # This should not be used in any model-free learning algorithm

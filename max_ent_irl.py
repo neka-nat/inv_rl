@@ -74,12 +74,23 @@ if __name__ == '__main__':
     print(res)
 
     import matplotlib.pyplot as plt
+
+
+    plt.matshow(grid.grid, 1)
+
     def to_mat(res, shape):
         dst = np.zeros(shape)
         for i, v in enumerate(res):
             dst[i // shape[1], i % shape[1]] = v
         return dst
 
-    plt.matshow(to_mat(res, grid.shape), 1)
-    plt.matshow(grid.grid, 2,)
+    plt.matshow(to_mat(res, grid.shape), 2)
+    xs = []
+    ys = []
+
+    for step in trajs[0]:
+        y, x = np.unravel_index(step[0], grid.shape)
+        xs.append(x)
+        ys.append(y)
+    plt.scatter(xs, ys, marker='X', color='Black')
     plt.show()
