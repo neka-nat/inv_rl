@@ -57,7 +57,7 @@ if __name__ == '__main__':
     U = value_iteration(trans_probs, reward)
     pi = best_policy(trans_probs, U)
 
-    trajs = generate_demons(grid, pi)
+    trajs = generate_demos(grid, pi)
 
     res = max_ent_deep_irl(feature_matrix(grid), trans_probs, trajs)
     print res

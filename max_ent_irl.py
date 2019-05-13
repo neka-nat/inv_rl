@@ -39,7 +39,7 @@ def max_ent_irl(feature_matrix, trans_probs, trajs,
 def feature_matrix(env):
     return np.eye(env.nS)
 
-def generate_demons(env, policy, n_trajs=100, len_traj=5):
+def generate_demos(env, policy, n_trajs=100, len_traj=5):
     trajs = []
     for _ in range(n_trajs):
         episode = []
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     U = value_iteration(trans_probs, reward)
     pi = best_policy(trans_probs, U)
 
-    trajs = generate_demons(grid, pi)
+    trajs = generate_demos(grid, pi)
 
     res = max_ent_irl(feature_matrix(grid), trans_probs, trajs)
     print res
